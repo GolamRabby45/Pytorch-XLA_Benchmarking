@@ -159,9 +159,9 @@ def benchmark_model(model, test_loader, device):
     return total_time, throughput
 
 # XLA Multiprocessing function
-def _mp_fn(rank, flags):
+'''def _mp_fn(rank, flags):
     train_model(model, criterion, optimizer, train_loader, test_loader, device, epochs=5)
     benchmark_model(model, test_loader, device)
 
 FLAGS = {}
-xmp.spawn(_mp_fn, args=(FLAGS,), nprocs=8, start_method='fork')
+xmp.spawn(_mp_fn, args=(FLAGS,), nprocs=8, start_method='fork')'''
