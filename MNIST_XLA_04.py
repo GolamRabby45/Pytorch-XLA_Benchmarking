@@ -3,11 +3,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from torchvision.utils import make_grid
+import torch_xla.core.xla_model as xm
+from torchvision import datasets, transforms
 import time
 
 # Check if GPU is available and set the device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(f"Running on device: {device}")
+device = xm.xla_device()
+print(f"Running on XLA device: {device}")
 
 # Loading and transforming the MNIST dataset
 transform = transforms.ToTensor()
@@ -41,10 +44,10 @@ class ConvolutionalNetwork(nn.Module):
         return F.log_softmax(X, dim=1)
 
 # Initialize the model, move to the GPU, loss function, and optimizer
+torch.manual_seed(42)
 model = ConvolutionalNetwork()
 
 model.to(device)
-
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -77,7 +80,10 @@ def train_fn(model, train_loader, optimizer, criterion, device, epochs=5):
             # Update parameters
             optimizer.zero_grad()
             loss.backward()
-            optimizer.step()
+
+            # XLA-specific optimizer step
+            xm.optimizer_step(optimizer, barrier=True)
+            
 
             # Print interim results
             if b % 600 == 0:
