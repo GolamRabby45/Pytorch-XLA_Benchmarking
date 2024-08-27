@@ -41,7 +41,8 @@ class ConvolutionalNetwork(nn.Module):
         return F.log_softmax(X, dim=1)
 
 # Initialize the model, move to the GPU, loss function, and optimizer
-model = ConvolutionalNetwork().to(device)
+model = ConvolutionalNetwork()
+model = model.to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
