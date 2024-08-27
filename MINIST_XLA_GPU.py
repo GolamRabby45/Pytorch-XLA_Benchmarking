@@ -103,8 +103,8 @@ def train_model(model, criterion, optimizer, train_loader, test_loader, device, 
 
             # Print interim results
             if b % 600 == 0:
-                xm.master_print(f'epoch: {i:2} batch: {b:4} [{10 * b:6}/60000]  loss: {loss.item():10.8f}  '
-                                f'accuracy: {trn_corr.item() * 100 / (10 * b):7.3f}%')
+                print(f'epoch: {i:2}  batch: {b:4} [{10 * b:6}/60000]  loss: {loss.item():10.8f}  \ accuracy: {trn_corr.item() * 100 / (10 * b):7.3f}%')
+                        
 
         train_losses.append(loss.item())
         train_correct.append(trn_corr.item())
@@ -127,7 +127,9 @@ def train_model(model, criterion, optimizer, train_loader, test_loader, device, 
         test_losses.append(loss.item())
         test_correct.append(tst_corr.item())
 
-    xm.master_print(f'\nDuration: {time.time() - start_time:.0f} seconds')  # Print the time elapsed
+    print(f'\nDuration: {time.time() - start_time:.0f} seconds')  # Print the time elapsed
+
+train_model(model, criterion, optimizer, train_loader, test_loader, device, epochs=5)
 
 # Define the benchmarking function
 def benchmark_model(model, test_loader, device):
@@ -146,20 +148,22 @@ def benchmark_model(model, test_loader, device):
             xm.mark_step()  # Sync step before computation
             start_batch = time.time()
             output = model(X_test)  # Forward pass
-            xm.mark_step()  # Sync step after computation
             total_time += time.time() - start_batch
             processed_samples += X_test.size(0)
 
     total_time = time.time() - start_time
     throughput = processed_samples / total_time
 
-    xm.master_print(f'Total inference time: {total_time:.3f} seconds')
-    xm.master_print(f'Throughput: {throughput:.2f} samples/second')
+    print(f'Total inference time: {total_time:.3f} seconds')
+    print(f'Throughput: {throughput:.2f} samples/second')
 
     return total_time, throughput
 
+benchmark_model(model, test_loader, device)
+
 # XLA Multiprocessing function
 '''def _mp_fn(rank, flags):
+
     train_model(model, criterion, optimizer, train_loader, test_loader, device, epochs=5)
     benchmark_model(model, test_loader, device)
 
