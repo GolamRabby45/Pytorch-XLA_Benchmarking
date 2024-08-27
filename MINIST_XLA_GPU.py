@@ -14,7 +14,7 @@ import pandas as pd
 
 # Setting the device to XLA (e.g., TPU or XLA-accelerated GPU)
 device = xm.xla_device()
-xm.master_print(f"Running on XLA device: {device}")
+print(f"Running on XLA device: {device}")
 
 # Loading of the MNIST dataset
 transform = transforms.ToTensor()
