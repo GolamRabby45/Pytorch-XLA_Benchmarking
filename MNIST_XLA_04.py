@@ -22,6 +22,19 @@ test_data = datasets.MNIST(root='../Data', train=False, download=True, transform
 train_loader = DataLoader(train_data, batch_size=10, shuffle=True)
 test_loader = DataLoader(test_data, batch_size=10, shuffle=False)
 
+'''
+# Use XLA-specific distributed sampler for data loading
+train_sampler = torch.utils.data.distributed.DistributedSampler(
+    train_data, num_replicas=xm.xrt_world_size(), rank=xm.get_ordinal(), shuffle=True
+)
+test_sampler = torch.utils.data.distributed.DistributedSampler(
+    test_data, num_replicas=xm.xrt_world_size(), rank=xm.get_ordinal(), shuffle=False
+)
+
+train_loader = DataLoader(train_data, batch_size=10, sampler=train_sampler, num_workers=4, drop_last=True)
+test_loader = DataLoader(test_data, batch_size=10, sampler=test_sampler, num_workers=4, drop_last=False)
+'''
+
 # Defining the Convolutional Neural Network model
 class ConvolutionalNetwork(nn.Module):
     def __init__(self):
