@@ -158,7 +158,7 @@ def run_fn(train_loader, test_loader, model, criterion, optimizer, device, epoch
         #xm.master_print(f'Train Accuracy: {train_acc:.3f} Test Accuracy: {test_acc:.3f}')
 
 
-run_fn()
+run_fn(train_loader, test_loader, model, criterion, optimizer, device, epochs=5)
 
 '''
 # Define the benchmarking function
