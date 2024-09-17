@@ -9,7 +9,7 @@ import torch_xla.core.xla_model as xm
 import torch_xla.distributed.parallel_loader as pl
 import torch_xla.utils.utils as xu
 
-# Set XLA device
+# Setting XLA->device
 DEVICE = xm.xla_device()
 print(f"Running on XLA device: {DEVICE}")
 
@@ -21,7 +21,7 @@ NUM_EPOCHS = 10
 NUM_CLASSES = 10
 GRAYSCALE = False
 
-# Set random seed for reproducibility
+
 torch.manual_seed(RANDOM_SEED)
 
 # CIFAR-10 Dataset
@@ -35,7 +35,7 @@ test_sampler = torch.utils.data.distributed.DistributedSampler(test_dataset, num
 train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, sampler=train_sampler, num_workers=4, drop_last=True)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, sampler=test_sampler, num_workers=4, drop_last=False)
 
-# LeNet5 Model Definition
+# LeNet5 Model 
 class LeNet5(nn.Module):
     def __init__(self, num_classes, grayscale=False):
         super(LeNet5, self).__init__()
@@ -65,7 +65,7 @@ class LeNet5(nn.Module):
         probas = F.softmax(logits, dim=1)
         return logits, probas
 
-# Initialize the model and optimizer
+
 model = LeNet5(NUM_CLASSES, GRAYSCALE)
 model.to(DEVICE)
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -73,9 +73,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 # Function to compute accuracy
 def compute_accuracy(model, data_loader, device):
     correct_pred, num_examples = 0, 0
-    model.eval()  # Set model to evaluation mode
+    model.eval()  
     para_loader = pl.ParallelLoader(data_loader, [device])
-    with torch.no_grad():  # Disable gradient calculation
+    with torch.no_grad():  
         for features, targets in para_loader.per_device_loader(device):
             features, targets = features.to(device), targets.to(device)
             logits, probas = model(features)
@@ -93,20 +93,20 @@ def train_model(model, train_loader, optimizer, device, num_epochs):
         for batch_idx, (features, targets) in enumerate(para_loader.per_device_loader(device)):
             features, targets = features.to(DEVICE), targets.to(DEVICE)
 
-            # Forward pass and loss calculation
+            
             logits, probas = model(features)
             cost = F.cross_entropy(logits, targets)
 
-            # Backpropagation and optimization
+            
             optimizer.zero_grad()
             cost.backward()
             xm.optimizer_step(optimizer)  # XLA-specific optimizer step
 
-            # Logging the loss for every 50th batch
+            
             if not batch_idx % 50:
                 print(f'Epoch: {epoch+1}/{num_epochs} | Batch {batch_idx}/{len(train_loader)} | Cost: {cost:.4f}')
 
-        # Compute and print training accuracy after each epoch
+        # Computing and printing training accuracy after each epoch
         train_acc = compute_accuracy(model, train_loader, device=DEVICE)
         print(f'Epoch: {epoch+1}/{num_epochs} | Train Accuracy: {train_acc:.2f}%')
 
@@ -135,14 +135,14 @@ def benchmark_model(model, train_loader, test_loader, device, num_epochs):
             total_time_inference += time.time() - start_time
 
     avg_inference_time_per_batch = total_time_inference / len(test_loader)
-    avg_inference_time_per_sample = (total_time_inference / num_samples) * 1000  # in milliseconds
-    throughput = num_samples / total_time_inference  # samples per second
+    avg_inference_time_per_sample = (total_time_inference / num_samples) * 1000  
+    throughput = num_samples / total_time_inference  
 
     # Accuracy
     train_acc = compute_accuracy(model, train_loader, device=DEVICE)
     test_acc = compute_accuracy(model, test_loader, device=DEVICE)
 
-    # Print KPIs
+    # Printing the->KPIs
     print(f"KPIs:")
     print(f"Accuracy (Train): {train_acc:.2f}%")
     print(f"Accuracy (Test): {test_acc:.2f}%")
@@ -150,5 +150,5 @@ def benchmark_model(model, train_loader, test_loader, device, num_epochs):
     print(f"Avg Inference Time (ms/sample): {avg_inference_time_per_sample:.4f} ms")
     print(f"Throughput (samples/second): {throughput:.2f} samples/s")
 
-# Run the benchmarking
+# Running the benchmarking
 benchmark_model(model, train_loader, test_loader, DEVICE, NUM_EPOCHS)

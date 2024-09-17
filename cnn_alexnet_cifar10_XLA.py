@@ -18,11 +18,11 @@ def set_all_seeds(seed):
     torch.manual_seed(seed)
     xm.set_rng_state(seed)
 
-# Set XLA device
+# Setting XLA->device
 DEVICE = xm.xla_device()
 print(f"Running on XLA device: {DEVICE}")
 
-# Set random seed and hyperparameters
+# Setting random seed and hyperparameters
 RANDOM_SEED = 1
 LEARNING_RATE = 0.0001
 BATCH_SIZE = 256
@@ -32,11 +32,11 @@ set_all_seeds(RANDOM_SEED)
 
 # Load CIFAR-10 dataset
 def get_dataloaders_cifar10(batch_size, num_workers, train_transforms, test_transforms, validation_fraction=0.1):
-    # Download and transform CIFAR-10 dataset
+    
     train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=train_transforms)
     test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=test_transforms)
     
-    # Split the training data into train and validation sets
+    # Splitting the training data into train and validation sets
     num_train_samples = int((1 - validation_fraction) * len(train_dataset))
     train_dataset, valid_dataset = torch.utils.data.random_split(train_dataset, [num_train_samples, len(train_dataset) - num_train_samples])
     
@@ -67,7 +67,7 @@ train_loader, valid_loader, test_loader = get_dataloaders_cifar10(
     test_transforms=test_transforms,
     validation_fraction=0.1)
 
-# Define the AlexNet model
+# AlexNet model
 class AlexNet(nn.Module):
     def __init__(self, num_classes):
         super(AlexNet, self).__init__()
@@ -104,7 +104,7 @@ class AlexNet(nn.Module):
         logits = self.classifier(x)
         return logits
 
-# Initialize the model, optimizer, and set it to the XLA device
+
 torch.manual_seed(RANDOM_SEED)
 model = AlexNet(NUM_CLASSES)
 model.to(DEVICE)
@@ -182,14 +182,14 @@ def benchmark_model(model, train_loader, test_loader, device):
             total_time_inference += time.time() - start_time
 
     avg_inference_time_per_batch = total_time_inference / len(test_loader)
-    avg_inference_time_per_sample = (total_time_inference / num_samples) * 1000  # in milliseconds
-    throughput = num_samples / total_time_inference  # samples per second
+    avg_inference_time_per_sample = (total_time_inference / num_samples) * 1000  
+    throughput = num_samples / total_time_inference  
 
     # Accuracy
     train_acc = compute_accuracy(model, train_loader, device)
     test_acc = compute_accuracy(model, test_loader, device)
 
-    # Print KPIs
+    # Printing the->KPIs
     print(f"KPIs:")
     print(f"Accuracy (Train): {train_acc:.2f}%")
     print(f"Accuracy (Test): {test_acc:.2f}%")
@@ -197,5 +197,5 @@ def benchmark_model(model, train_loader, test_loader, device):
     print(f"Avg Inference Time (ms/sample): {avg_inference_time_per_sample:.4f} ms")
     print(f"Throughput (samples/second): {throughput:.2f} samples/s")
 
-# Run the benchmarking
+# Running the benchmarking
 benchmark_model(model, train_loader, test_loader, DEVICE)
