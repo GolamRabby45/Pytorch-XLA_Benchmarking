@@ -16,7 +16,7 @@ print(f"Running on XLA device: {DEVICE}")
 # Hyperparameters and settings
 RANDOM_SEED = 1
 LEARNING_RATE = 0.0001
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 NUM_EPOCHS = 20
 NUM_CLASSES = 10
 GRAYSCALE = False  # CIFAR-10 images are RGB
